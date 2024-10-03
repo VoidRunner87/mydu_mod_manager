@@ -66,8 +66,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}\$($env:PACKAGE_NAME)-$($env:VERSION).zip
-          asset_name: "$($env:PACKAGE_NAME)-$($env:VERSION).zip"
+          asset_path: ${{ github.workspace }}\${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.zip  # Corrected
+          asset_name: ${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.zip  # Corrected
           asset_content_type: application/zip
 
       - name: Upload release asset (Setup.exe)
@@ -76,6 +76,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: out\make\squirrel.windows\x64\$($env:PACKAGE_NAME)-$($env:VERSION) Setup.exe
-          asset_name: "$($env:PACKAGE_NAME)-$($env:VERSION).exe"
+          asset_path: out\make\squirrel.windows\x64\${{ env.PACKAGE_NAME }}-${{ env.VERSION }} Setup.exe  # Corrected
+          asset_name: ${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.exe  # Corrected
           asset_content_type: application/octet-stream
+
