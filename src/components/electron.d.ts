@@ -4,6 +4,7 @@ export {};
 
 type DownloadCallback = (filename: string) => void;
 type DownloadProgress = (filename: string, progress: number) => void;
+type FolderDeleteCallback = (error?: Error) => void;
 
 declare global {
     interface Window {
@@ -19,7 +20,11 @@ declare global {
             readFile: (filePath) => Promise<string>;
             listCachedMods: () => Promise<string[]>;
             listInstalledMods: () => Promise<string[]>;
-            installMods: () => Promise<void>;
+            installMods: (modNames: string[]) => Promise<void>;
+            deleteCachedMods: (modNames: string[]) => Promise<void>;
+            deleteInstalledMods: (modNames: string[]) => Promise<void>;
+            onFolderDeleteFailed: (callback: FolderDeleteCallback) => void;
+            onFolderDeleteCompleted: (callback: FolderDeleteCallback) => void;
         };
     }
 }

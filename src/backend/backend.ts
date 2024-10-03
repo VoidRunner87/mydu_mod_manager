@@ -33,10 +33,12 @@ ipcMain.on('download-file', (event, {url, filename}) => {
             event.reply('download-complete', filePath); // Notify renderer when the download completes
         });
     }).on('error', (err) => {
+        fileStream.close();
+        event.reply('download-error', err.message);
+
         fs.unlink(filePath, () => {
             console.error("Failed to delete file");
         });
-        event.reply('download-error', err.message); // Send error to renderer
     });
 });
 
@@ -106,7 +108,7 @@ ipcMain.handle('extract-zip-file', async (event, zipFilePath, baseFolder) => {
     return new Promise((resolve, reject) => {
         const fileName = path.basename(zipFilePath, path.extname(zipFilePath));
 
-        const modCacheFolder = path.join(baseFolder, "Game", "data", "mod_cache");
+        const modCacheFolder = path.join(baseFolder, "mods-cache");
 
         if (!fs.existsSync(modCacheFolder)) {
             fs.mkdirSync(modCacheFolder);
@@ -136,7 +138,7 @@ const listMods = async (folder: string) => {
         .map((entry) => entry.name);
 }
 
-const listCachedMods = async () => await listMods(path.join("Game", "data", "mod_cache"));
+const listCachedMods = async () => await listMods(path.join("mods-cache"));
 const listInstalledMods = async () => await listMods(path.join("Game", "data", "resources_generated", "mods"));
 
 ipcMain.handle('list-cached-mods', async (event) => {
@@ -168,15 +170,55 @@ function copyFolder(src: string, dest: string) {
     });
 }
 
-ipcMain.handle('install-mods', async (event) => {
+async function deleteMods(event : Electron.IpcMainEvent, baseFolder: string, mods: string[], folderNames: string[])
+{
+    const deleteList = mods.filter(m => folderNames.includes(m));
+
+    const deletePathList = deleteList.map(m => path.join(baseFolder, m));
+
+    for (const folder of deletePathList) {
+        fs.rm(folder, { recursive: true, force: true }, err => {
+            if (err) {
+                event.reply("folder-delete-failed", err?.message);
+            }
+
+            event.reply("folder-delete-completed", null);
+        });
+    }
+}
+
+ipcMain.on('delete-cached-mods', async (event, folderNames: string[]) => {
+    const config = await readConfigFile();
+
+    const myDUPath = config.myDUPath;
+    const modCachePath = path.join(myDUPath, "mods-cache");
+
+    await deleteMods(event, modCachePath, await listCachedMods(), folderNames);
+});
+
+ipcMain.on('delete-installed-mods', async (event, folderNames: string[]) => {
+    const config = await readConfigFile();
+
+    const myDUPath = config.myDUPath;
+    const modsFolder = path.join(myDUPath, "Game", "data", "resources_generated", "mods");
+
+    await deleteMods(event, modsFolder, await listInstalledMods(), folderNames);
+});
+
+ipcMain.handle('install-mods', async (event, folderNames: string[]) => {
     const config = await readConfigFile();
     const cachedMods = await listCachedMods();
 
     const myDUPath = config.myDUPath;
-    const modCachePath = path.join(myDUPath, "Game", "data", "mod_cache");
+    const modCachePath = path.join(myDUPath, "mods-cache");
     const modsFolder = path.join(myDUPath, "Game", "data", "resources_generated", "mods");
 
     for (const mod of cachedMods) {
+        if (!folderNames.includes(mod))
+        {
+            continue;
+        }
+
         const modPath = path.join(modCachePath, mod);
         const destPath = path.join(modsFolder, mod);
         copyFolder(modPath, destPath);

@@ -1,11 +1,14 @@
-import {Box, Button, IconButton, Paper, TextField} from "@mui/material";
+import {Box, Button, IconButton, LinearProgress, Paper, TextField} from "@mui/material";
 import DashboardContainer from "../dashboard/dashboard-container";
-import {DataGrid, GridColDef} from "@mui/x-data-grid";
+import {DataGrid, GridCallbackDetails, GridColDef, GridRowSelectionModel} from "@mui/x-data-grid";
 import DownloadIcon from '@mui/icons-material/Download';
+import DeleteIcon from '@mui/icons-material/Delete';
 import ReplayIcon from '@mui/icons-material/Replay';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import EjectIcon from '@mui/icons-material/Eject';
+import {useNotifications} from '@toolpad/core/useNotifications';
 import React, {useEffect, useState} from "react";
 import {AppConfig} from "../../common/config";
+import {Inventory, CheckCircle} from "@mui/icons-material";
 
 interface ModItem {
     id: string;
@@ -19,10 +22,14 @@ interface Manifest {
 const ModsPage = () => {
 
     const [downloadCompletedRegistered, setDownloadCompletedRegistered] = useState(false);
+    const [folderDeleteRegistered, setFolderDeleteRegistered] = useState(false);
     const [cachedMods, setCachedMods] = useState<ModItem[]>([]);
     const [installedMods, setInstalledMods] = useState<Record<string, ModItem>>({});
     const [config, setConfig] = useState<AppConfig>({myDUPath: "", serverUrl: ""});
     const [manifest, setManifest] = useState<Manifest>();
+    const [selectedMods, setSelectedMods] = useState<string[]>([]);
+    const [loading, setLoading] = useState(false);
+    const notifications = useNotifications();
 
     const listMods = () => {
         window.api.listCachedMods()
@@ -34,7 +41,7 @@ const ModsPage = () => {
 
         window.api.listInstalledMods()
             .then(mods => {
-                let map = {} as Record<string, ModItem>;
+                const map = {} as Record<string, ModItem>;
 
                 for (const m of mods) {
                     map[m] = {id: m};
@@ -51,11 +58,25 @@ const ModsPage = () => {
         listMods();
     }, []);
 
+
+    const statusCell = (status: { downloaded: boolean, installed: boolean }) => {
+        return (
+            <>
+                <IconButton title="Downloaded"><Inventory/></IconButton>
+                {status.installed ?
+                    <IconButton title="Installed"><CheckCircle/></IconButton>
+                    : ""
+                }
+            </>
+        );
+    };
+
     const columns: GridColDef[] = [
         {field: 'id', headerName: 'Title', width: 600,},
-        {field: 'status', headerName: 'Status', width: 150,
-            valueGetter: (value, row) => !!installedMods[row.id],
-            renderCell: params =>  params.value ? (<IconButton title="Installed"><CheckCircleIcon /></IconButton>) : ""
+        {
+            field: 'status', headerName: 'Status', width: 150,
+            valueGetter: (value, row) => ({downloaded: true, installed: !!installedMods[row.id]}),
+            renderCell: params => statusCell(params.value)
         },
         // {field: 'version', headerName: 'Version', width: 75,},
         // {field: 'url', headerName: 'URL', width: 250,},
@@ -87,38 +108,63 @@ const ModsPage = () => {
                     const downloadUrl = `${baseUrl}/${fileName}`;
 
                     if (!cachedMods.map(x => x.id).includes(mod)) {
+                        setLoading(true);
                         window.api.downloadFile(downloadUrl, fileName);
                         return;
                     }
-
-                    console.log(`Skipped ${mod}`);
                 }
+            }, error => {
+                notifications.show(`Failed to download manifest: ${error}`, {
+                    autoHideDuration: 3000,
+                    severity: "error"
+                });
             });
     };
 
     const serverSync = () => {
+        setLoading(true);
         window.api.downloadFile(config.serverUrl, 'manifest.json');
 
-        if (downloadCompletedRegistered)
-        {
+        if (downloadCompletedRegistered) {
             return;
         }
 
+        window.api.onDownloadError(filename => {
+            setLoading(false);
+            notifications.show(`Failed to download ${filename}`, {
+                autoHideDuration: 3000,
+                severity: "error"
+            });
+        });
+
         window.api.onDownloadComplete(filename => {
-            if (filename.endsWith("manifest.json"))
-            {
+            setLoading(false);
+
+            if (filename.endsWith("manifest.json")) {
+                notifications.show('Manifest downloaded', {
+                    autoHideDuration: 1000,
+                    severity: "success"
+                });
                 processManifestFile(filename);
                 return;
             }
 
-            if (filename.endsWith(".zip"))
-            {
-                if (!config.myDUPath)
-                {
+            if (filename.endsWith(".zip")) {
+                if (!config.myDUPath) {
                     return;
                 }
 
-                console.log(config.myDUPath);
+                const filePieces = filename
+                    .replace(/[\\/]/g, "|")
+                    .split("|");
+
+                const lastPiece = filePieces[filePieces.length - 1];
+
+                notifications.show(`Downloaded ${lastPiece}`, {
+                    autoHideDuration: 3000,
+                    severity: "info"
+                });
+
                 window.api.extractZipFile(filename, config.myDUPath)
                     .then(() => {
                         window.api.listCachedMods()
@@ -135,8 +181,60 @@ const ModsPage = () => {
     };
 
     const installMods = () => {
-        window.api.installMods();
+        window.api.installMods(selectedMods)
+            .then(() => {
+                listMods();
+
+                notifications.show(
+                    `${selectedMods.length} mods installed`,
+                    {
+                        severity: "info",
+                        autoHideDuration: 1000
+                    }
+                );
+            });
     };
+
+    function handleRowSelectionModelChanged(rowSelectionModel: GridRowSelectionModel, details: GridCallbackDetails) {
+        setSelectedMods(rowSelectionModel.map(r => `${r}`));
+    }
+
+    function handleDeleteClicked() {
+        window.api.deleteCachedMods(selectedMods);
+
+        handleRemoveModCallbacks();
+    }
+
+    function handleUninstallClicked() {
+        window.api.deleteInstalledMods(selectedMods);
+
+        handleRemoveModCallbacks();
+    }
+
+    function handleRemoveModCallbacks()
+    {
+        if (folderDeleteRegistered) {
+            return;
+        }
+
+        window.api.onFolderDeleteCompleted(_ => {
+            notifications.show(`Removed ${selectedMods.length} mods`, {
+                autoHideDuration: 3000,
+                severity: "info"
+            });
+
+            listMods();
+        });
+
+        window.api.onFolderDeleteFailed(error => {
+            notifications.show(`Failed to delete: ${error}`, {
+                autoHideDuration: 3000,
+                severity: "error"
+            });
+        });
+
+        setFolderDeleteRegistered(true);
+    }
 
     return (
         <DashboardContainer title="Mods">
@@ -152,22 +250,39 @@ const ModsPage = () => {
                 }}
             >
                 <TextField
-                    label="Server Mod List API URL"
+                    label="Server Mod Manifest URL"
                     variant="standard"
                     size="small"
                     value={config.serverUrl}
                     onChange={handleChanged}
                     fullWidth
                 />
-                <Button color="primary" variant="outlined" sx={{minWidth: '100px'}} onClick={() => serverSync()} startIcon={<ReplayIcon />}>
+                <Button color="primary" variant="outlined" sx={{minWidth: '100px'}} onClick={() => serverSync()}
+                        disabled={loading}
+                        startIcon={<ReplayIcon/>}>
                     Sync
                 </Button>
-                <Button color="primary" variant="contained" sx={{minWidth: '100px'}} onClick={() => installMods()} startIcon={<DownloadIcon />}>
+                <Button color="primary" variant="contained" sx={{minWidth: '100px'}}
+                        disabled={selectedMods.length === 0}
+                        onClick={() => installMods()}
+                        startIcon={<DownloadIcon/>}>
                     Install
                 </Button>
+                <IconButton title={"Delete selected"}
+                            onClick={handleDeleteClicked}
+                            disabled={selectedMods.length === 0}>
+                    <DeleteIcon/>
+                </IconButton>
+                <IconButton title={"Uninstall selected"}
+                            onClick={handleUninstallClicked}
+                            disabled={selectedMods.length === 0}>
+                    <EjectIcon/>
+                </IconButton>
             </Box>
 
-            <br />
+            {loading ? (<Box><LinearProgress/></Box>) : ""}
+
+            <br/>
 
             <Paper>
                 <DataGrid
@@ -176,6 +291,7 @@ const ModsPage = () => {
                     getRowId={x => x.id}
                     initialState={{pagination: {paginationModel}}}
                     pageSizeOptions={[10, 20, 30, 40, 50, 100]}
+                    onRowSelectionModelChange={(rowSelectionModel, details) => handleRowSelectionModelChanged(rowSelectionModel, details)}
                     checkboxSelection
                     sx={{border: 0}}
                 />
