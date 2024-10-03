@@ -126,18 +126,25 @@ ipcMain.handle('extract-zip-file', async (event, zipFilePath, baseFolder) => {
     });
 });
 
-const listCachedMods = async () => {
+const listMods = async (folder: string) => {
     const config = await readConfigFile();
     const myDUPath = config.myDUPath;
-    const modCachePath = path.join(myDUPath, "Game", "data", "mod_cache");
+    const modCachePath = path.join(myDUPath, folder);
 
     return fs.readdirSync(modCachePath, {withFileTypes: true})
         .filter((entry) => entry.isDirectory())
         .map((entry) => entry.name);
 }
 
+const listCachedMods = async () => await listMods(path.join("Game", "data", "mod_cache"));
+const listInstalledMods = async () => await listMods(path.join("Game", "data", "resources_generated", "mods"));
+
 ipcMain.handle('list-cached-mods', async (event) => {
     return await listCachedMods();
+});
+
+ipcMain.handle('list-installed-mods', async (event) => {
+    return await listInstalledMods();
 });
 
 function copyFolder(src: string, dest: string) {
@@ -163,13 +170,13 @@ function copyFolder(src: string, dest: string) {
 
 ipcMain.handle('install-mods', async (event) => {
     const config = await readConfigFile();
-    const mods = await listCachedMods();
+    const cachedMods = await listCachedMods();
 
     const myDUPath = config.myDUPath;
     const modCachePath = path.join(myDUPath, "Game", "data", "mod_cache");
     const modsFolder = path.join(myDUPath, "Game", "data", "resources_generated", "mods");
 
-    for (const mod of mods) {
+    for (const mod of cachedMods) {
         const modPath = path.join(modCachePath, mod);
         const destPath = path.join(modsFolder, mod);
         copyFolder(modPath, destPath);

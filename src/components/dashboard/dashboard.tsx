@@ -6,18 +6,21 @@ import {Inventory, Settings} from "@mui/icons-material";
 
 const NAVIGATION: Navigation = [
     {
-        segment: 'main_window/mods',
+        segment: 'mods',
         title: 'Mods',
         icon: <Inventory/>,
     },
     {
-        segment: 'main_window/settings',
+        segment: 'settings',
         title: 'Settings',
         icon: <Settings/>,
     }
 ];
 
 const theme = createTheme({
+    palette: {
+        mode: 'dark'
+    },
     cssVariables: {
         colorSchemeSelector: 'data-toolpad-color-scheme',
     },

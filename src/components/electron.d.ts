@@ -18,6 +18,7 @@ declare global {
             extractZipFile: (filePath: string, baseFolder: string) => Promise<string>;
             readFile: (filePath) => Promise<string>;
             listCachedMods: () => Promise<string[]>;
+            listInstalledMods: () => Promise<string[]>;
             installMods: () => Promise<void>;
         };
     }

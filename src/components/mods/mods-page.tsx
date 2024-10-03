@@ -3,6 +3,7 @@ import DashboardContainer from "../dashboard/dashboard-container";
 import {DataGrid, GridColDef} from "@mui/x-data-grid";
 import DownloadIcon from '@mui/icons-material/Download';
 import ReplayIcon from '@mui/icons-material/Replay';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import React, {useEffect, useState} from "react";
 import {AppConfig} from "../../common/config";
 
@@ -18,25 +19,44 @@ interface Manifest {
 const ModsPage = () => {
 
     const [downloadCompletedRegistered, setDownloadCompletedRegistered] = useState(false);
-    const [data, setData] = useState<ModItem[]>([]);
+    const [cachedMods, setCachedMods] = useState<ModItem[]>([]);
+    const [installedMods, setInstalledMods] = useState<Record<string, ModItem>>({});
     const [config, setConfig] = useState<AppConfig>({myDUPath: "", serverUrl: ""});
     const [manifest, setManifest] = useState<Manifest>();
+
+    const listMods = () => {
+        window.api.listCachedMods()
+            .then(mods => setCachedMods(mods.map(m => {
+                return {
+                    id: m
+                }
+            })));
+
+        window.api.listInstalledMods()
+            .then(mods => {
+                let map = {} as Record<string, ModItem>;
+
+                for (const m of mods) {
+                    map[m] = {id: m};
+                }
+
+                setInstalledMods(map);
+            });
+    };
 
     useEffect(() => {
         window.api.readConfig()
             .then(config => setConfig(config));
 
-        window.api.listCachedMods()
-            .then(mods => setData(mods.map(m => {
-                return {
-                    id: m
-                }
-            })));
+        listMods();
     }, []);
 
     const columns: GridColDef[] = [
         {field: 'id', headerName: 'Title', width: 600,},
-        // {field: 'author', headerName: 'Author', width: 150,},
+        {field: 'status', headerName: 'Status', width: 150,
+            valueGetter: (value, row) => !!installedMods[row.id],
+            renderCell: params =>  params.value ? (<IconButton title="Installed"><CheckCircleIcon /></IconButton>) : ""
+        },
         // {field: 'version', headerName: 'Version', width: 75,},
         // {field: 'url', headerName: 'URL', width: 250,},
     ];
@@ -66,7 +86,7 @@ const ModsPage = () => {
                     const baseUrl = config.serverUrl.replace("manifest.json", "");
                     const downloadUrl = `${baseUrl}/${fileName}`;
 
-                    if (!data.map(x => x.id).includes(mod)) {
+                    if (!cachedMods.map(x => x.id).includes(mod)) {
                         window.api.downloadFile(downloadUrl, fileName);
                         return;
                     }
@@ -102,7 +122,7 @@ const ModsPage = () => {
                 window.api.extractZipFile(filename, config.myDUPath)
                     .then(() => {
                         window.api.listCachedMods()
-                            .then(mods => setData(mods.map(m => {
+                            .then(mods => setCachedMods(mods.map(m => {
                                 return {
                                     id: m
                                 }
@@ -151,7 +171,7 @@ const ModsPage = () => {
 
             <Paper>
                 <DataGrid
-                    rows={data}
+                    rows={cachedMods}
                     columns={columns}
                     getRowId={x => x.id}
                     initialState={{pagination: {paginationModel}}}

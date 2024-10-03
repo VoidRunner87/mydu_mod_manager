@@ -17,24 +17,15 @@ function App() {
         </Container>);
     }
 
-    const routes = [
-        {path: '', element: <Navigate to="mods" replace/>},
-        {path: 'settings', element: <SettingsPage/>},
-        {path: 'mods', element: <ModsPage/>},
-    ];
-
     const router = createHashRouter([
         {
             path: '/',
-            element: <Outlet />,
+            element: <Dashboard/>,
             errorElement: <ErrorPage/>,
             children: [
-                {path: '', element: <Navigate to="main_window" replace/>},
-                {
-                    path: 'main_window',
-                    element: <Dashboard/>,
-                    children: routes
-                },
+                {path: '', element: <Navigate to="mods" replace/>},
+                {path: 'settings', element: <SettingsPage/>},
+                {path: 'mods', element: <ModsPage/>},
             ]
         }
     ]);

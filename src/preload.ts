@@ -18,5 +18,6 @@ contextBridge.exposeInMainWorld('api', {
     readConfig: () => ipcRenderer.invoke('read-config'),
     saveConfig: (config: AppConfig) => ipcRenderer.invoke('save-config', config),
     listCachedMods: () => ipcRenderer.invoke("list-cached-mods"),
+    listInstalledMods: () => ipcRenderer.invoke("list-installed-mods"),
     installMods: () => ipcRenderer.invoke("install-mods"),
 });
