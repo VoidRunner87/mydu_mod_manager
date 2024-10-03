@@ -20,7 +20,7 @@ contextBridge.exposeInMainWorld('api', {
     saveConfig: (config: AppConfig) => ipcRenderer.invoke('save-config', config),
     listCachedMods: () => ipcRenderer.invoke('list-cached-mods'),
     listInstalledMods: () => ipcRenderer.invoke('list-installed-mods'),
-    installMods: (modNames: string[]) => ipcRenderer.invoke('install-mods'),
+    installMods: (modNames: string[]) => ipcRenderer.invoke('install-mods', modNames),
     deleteCachedMods: (modNames: string[]) => ipcRenderer.send('delete-cached-mods', modNames),
     deleteInstalledMods: (modNames: string[]) => ipcRenderer.send('delete-installed-mods', modNames),
     onFolderDeleteFailed: (callback: FolderDeleteCallback) => ipcRenderer.on('folder-delete-failed', (event, error) => callback(error)),

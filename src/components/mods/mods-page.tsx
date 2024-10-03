@@ -203,7 +203,7 @@ const ModsPage = () => {
 
     async function handleDeleteClicked() {
 
-        const confirmed = await dialogs.confirm("This will delete your mods-cache mods. Are you sure?");
+        const confirmed = await dialogs.confirm("This will delete the selected mods from your mods-cache folder. Are you sure?");
         if (!confirmed) {
             return;
         }
@@ -214,7 +214,7 @@ const ModsPage = () => {
     }
 
     async function handleUninstallClicked() {
-        const confirmed = await dialogs.confirm("This will delete/uninstall your mods from MyDU's folder. Are you sure?");
+        const confirmed = await dialogs.confirm("This will delete/uninstall the selected mods from game's folder. Are you sure?");
         if (!confirmed) {
             return;
         }
