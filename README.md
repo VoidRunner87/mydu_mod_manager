@@ -8,6 +8,24 @@ Credit to NQ/BearClaw for I based this on his work [here](https://github.com/dua
 
 Go to releases and download a standalone (zip) or installer (exe)
 
+Set where your game folder is located:
+
+![image](https://github.com/user-attachments/assets/ff66d797-b8bc-4882-8dab-73be60ea048c)
+
+Set the URL of the server to sync:
+
+![image](https://github.com/user-attachments/assets/30f3d030-0bb0-4eea-86cc-acfd26e61acf)
+
+Press `SYNC`
+
+Select All mods you want to install and press `INSTALL`
+
+![image](https://github.com/user-attachments/assets/8eb0c58c-3e03-4082-8d2c-ef61121e94bb)
+
+The app stores all mods downloaded on a folder called `mods-cache` inside the game's folder.
+
+The app "installs" mods by copying form `mods-cache` to the `Game/data/resources_generated/mods` folder
+
 # I'm a Server admin
 
 Expose an endpoint that players can download mods:
