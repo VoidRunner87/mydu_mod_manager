@@ -56,3 +56,4 @@ Also on the same folder as the manifest, add the files listed on the mods proper
 
 It has to be a zip file
 On the manifest you can ommit the zip extension.
+Create mod zip files with versioning in mind. The mod manager WILL SKIP already downloaded mods.
