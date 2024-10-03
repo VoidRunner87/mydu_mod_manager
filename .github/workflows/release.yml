@@ -39,11 +39,13 @@ jobs:
       - name: Package Electron App
         run: npm run package
 
-      - name: Publish Electron App
-        run: npm run publish
+      # - name: Publish Electron App
+      #   run: npm run publish
 
       - name: Zip Package
-        run: zip -r ${{ github.workspace }}/${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.zip out/${{ env.PACKAGE_NAME }}-win32-x64/
+        run: |
+          ls -l
+          zip -r ${{ github.workspace }}/${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.zip out/${{ env.PACKAGE_NAME }}-win32-x64/
 
       - name: Create GitHub release
         id: create_release
@@ -66,12 +68,12 @@ jobs:
           asset_name: "${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.zip"
           asset_content_type: application/zip
 
-      - name: Upload release asset (Setup.exe)
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: out/make/squirrel.windows/x64/${{ env.PACKAGE_NAME }}-${{ env.VERSION }} Setup.exe
-          asset_name: "${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.exe"
-          asset_content_type: application/octet-stream
+      # - name: Upload release asset (Setup.exe)
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: out/make/squirrel.windows/x64/${{ env.PACKAGE_NAME }}-${{ env.VERSION }} Setup.exe
+      #     asset_name: "${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.exe"
+      #     asset_content_type: application/octet-stream
