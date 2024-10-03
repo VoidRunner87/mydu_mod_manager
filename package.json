@@ -1,8 +1,8 @@
 {
   "name": "mydu-mod-manager",
   "productName": "mydu-mod-manager",
-  "version": "1.0.0",
-  "description": "My Electron application description",
+  "version": "1.0.1",
+  "description": "MyDU Mod Manager for Players to Sync Client Mods from a Server",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",

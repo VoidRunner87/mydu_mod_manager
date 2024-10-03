@@ -9,6 +9,7 @@ import {useNotifications} from '@toolpad/core/useNotifications';
 import React, {useEffect, useState} from "react";
 import {AppConfig} from "../../common/config";
 import {Inventory, CheckCircle} from "@mui/icons-material";
+import {useDialogs} from "@toolpad/core";
 
 interface ModItem {
     id: string;
@@ -30,6 +31,7 @@ const ModsPage = () => {
     const [selectedMods, setSelectedMods] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const notifications = useNotifications();
+    const dialogs = useDialogs();
 
     const listMods = () => {
         window.api.listCachedMods()
@@ -199,13 +201,24 @@ const ModsPage = () => {
         setSelectedMods(rowSelectionModel.map(r => `${r}`));
     }
 
-    function handleDeleteClicked() {
+    async function handleDeleteClicked() {
+
+        const confirmed = await dialogs.confirm("This will delete your mods-cache mods. Are you sure?");
+        if (!confirmed) {
+            return;
+        }
+
         window.api.deleteCachedMods(selectedMods);
 
         handleRemoveModCallbacks();
     }
 
-    function handleUninstallClicked() {
+    async function handleUninstallClicked() {
+        const confirmed = await dialogs.confirm("This will delete/uninstall your mods from MyDU's folder. Are you sure?");
+        if (!confirmed) {
+            return;
+        }
+
         window.api.deleteInstalledMods(selectedMods);
 
         handleRemoveModCallbacks();

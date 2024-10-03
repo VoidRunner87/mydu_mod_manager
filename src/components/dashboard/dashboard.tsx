@@ -3,6 +3,7 @@ import React from "react";
 import {AppProvider, DashboardLayout, Navigation, Router} from "@toolpad/core";
 import {createTheme} from "@mui/material";
 import { NotificationsProvider } from '@toolpad/core/useNotifications';
+import { DialogsProvider } from '@toolpad/core/useDialogs';
 import {Inventory, Settings} from "@mui/icons-material";
 import logo from '../../assets/images/logo.png';
 import styled from "@emotion/styled";
@@ -74,9 +75,11 @@ const Dashboard = (props: any) => {
         theme={theme}
     >
         <DashboardLayout>
-            <NotificationsProvider>
-                <Outlet/>
-            </NotificationsProvider>
+            <DialogsProvider>
+                <NotificationsProvider>
+                    <Outlet/>
+                </NotificationsProvider>
+            </DialogsProvider>
         </DashboardLayout>
     </AppProvider>
 };
