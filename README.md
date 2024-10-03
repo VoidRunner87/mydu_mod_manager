@@ -8,6 +8,8 @@ Credit to NQ/BearClaw for I based this on his work [here](https://github.com/dua
 
 Go to releases and download a standalone (zip) or installer (exe)
 
+## Usage
+
 Set where your game folder is located:
 
 ![image](https://github.com/user-attachments/assets/ff66d797-b8bc-4882-8dab-73be60ea048c)
@@ -25,6 +27,14 @@ Select All mods you want to install and press `INSTALL`
 The app stores all mods downloaded on a folder called `mods-cache` inside the game's folder.
 
 The app "installs" mods by copying form `mods-cache` to the `Game/data/resources_generated/mods` folder
+
+## To uninstall a mod:
+
+Select the mods you want to uninstall and press ![image](https://github.com/user-attachments/assets/f7d8622b-ba55-4a92-9eea-5bf1727ae624)
+
+## To delete a mod from the cache:
+
+Select the mods you want to delete and press ![image](https://github.com/user-attachments/assets/d7c58bd8-1b48-4e6b-a526-c3e49fdaedcb)
 
 # I'm a Server admin
 
