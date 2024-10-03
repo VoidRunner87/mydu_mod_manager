@@ -54,6 +54,8 @@ Also on the same folder as the manifest, add the files listed on the mods proper
 
 * com.github.VoidRunner87.some_mod-1.2.3.zip
 
-It has to be a zip file
+It has to be a zip file.
+
 On the manifest you can ommit the zip extension.
+
 Create mod zip files with versioning in mind. The mod manager WILL SKIP already downloaded mods.
