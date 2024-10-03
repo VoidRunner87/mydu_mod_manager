@@ -14,7 +14,7 @@ on:
 
 jobs:
   package:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest  # Changed to Windows runner
 
     steps:
       - name: Checkout Code
@@ -31,21 +31,23 @@ jobs:
       - name: Read Package Name and Version
         id: get_package_info
         run: |
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
-          VERSION=$(node -p "require('./package.json').version")
-          echo "PACKAGE_NAME=${PACKAGE_NAME}" >> $GITHUB_ENV
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          $PACKAGE_NAME = node -p "require('./package.json').name"
+          $VERSION = node -p "require('./package.json').version"
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $env:GITHUB_ENV
+          echo "VERSION=$VERSION" >> $env:GITHUB_ENV
 
       - name: Package Electron App
         run: npm run package
 
-      # - name: Publish Electron App
-      #   run: npm run publish
+      - name: Publish Electron App
+        run: npm run publish
 
       - name: Zip Package
         run: |
-          ls -l out/
-          zip -r ${{ github.workspace }}/${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.zip out/${{ env.PACKAGE_NAME }}-win32-x64/
+          # Using PowerShell to create the zip file
+          $zipFilePath = "${{ github.workspace }}\$($env:PACKAGE_NAME)-$($env:VERSION).zip"
+          $sourceFolder = "out\$($env:PACKAGE_NAME)-win32-x64"
+          Compress-Archive -Path $sourceFolder\* -DestinationPath $zipFilePath
 
       - name: Create GitHub release
         id: create_release
@@ -64,16 +66,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.zip
-          asset_name: "${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.zip"
+          asset_path: ${{ github.workspace }}\$($env:PACKAGE_NAME)-$($env:VERSION).zip
+          asset_name: "$($env:PACKAGE_NAME)-$($env:VERSION).zip"
           asset_content_type: application/zip
 
-      # - name: Upload release asset (Setup.exe)
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: out/make/squirrel.windows/x64/${{ env.PACKAGE_NAME }}-${{ env.VERSION }} Setup.exe
-      #     asset_name: "${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.exe"
-      #     asset_content_type: application/octet-stream
+      - name: Upload release asset (Setup.exe)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: out\make\squirrel.windows\x64\$($env:PACKAGE_NAME)-$($env:VERSION) Setup.exe
+          asset_name: "$($env:PACKAGE_NAME)-$($env:VERSION).exe"
+          asset_content_type: application/octet-stream
