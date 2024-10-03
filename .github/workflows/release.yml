@@ -44,7 +44,7 @@ jobs:
 
       - name: Zip Package
         run: |
-          ls -l
+          ls -l out/
           zip -r ${{ github.workspace }}/${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.zip out/${{ env.PACKAGE_NAME }}-win32-x64/
 
       - name: Create GitHub release
