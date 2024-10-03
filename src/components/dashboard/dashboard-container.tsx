@@ -10,8 +10,6 @@ interface DashboardContainerProps
 
 const DashboardContainer = (props: DashboardContainerProps) => {
 
-    console.log(props.error);
-
     return (
         <Container>
             {props.error ? <Alert severity="error">{props.error}</Alert> : null}

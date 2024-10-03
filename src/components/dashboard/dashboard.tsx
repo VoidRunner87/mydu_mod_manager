@@ -6,12 +6,12 @@ import {Inventory, Settings} from "@mui/icons-material";
 
 const NAVIGATION: Navigation = [
     {
-        segment: 'mods',
+        segment: 'main_window/mods',
         title: 'Mods',
         icon: <Inventory/>,
     },
     {
-        segment: 'main_window',
+        segment: 'main_window/settings',
         title: 'Settings',
         icon: <Settings/>,
     }

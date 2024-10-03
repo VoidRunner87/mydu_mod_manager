@@ -3,10 +3,11 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-import {createBrowserRouter, Navigate, RouterProvider} from "react-router-dom";
+import {createHashRouter, Navigate, Outlet, RouterProvider} from "react-router-dom";
 import Dashboard from "./dashboard/dashboard";
 import {Container, Typography} from "@mui/material";
 import SettingsPage from "./settings/settings-page";
+import ModsPage from "./mods/mods-page";
 
 function App() {
 
@@ -16,14 +17,24 @@ function App() {
         </Container>);
     }
 
-    const router = createBrowserRouter([
+    const routes = [
+        {path: '', element: <Navigate to="mods" replace/>},
+        {path: 'settings', element: <SettingsPage/>},
+        {path: 'mods', element: <ModsPage/>},
+    ];
+
+    const router = createHashRouter([
         {
             path: '/',
-            element: <Dashboard/>,
+            element: <Outlet />,
             errorElement: <ErrorPage/>,
             children: [
-                {path: '', element: <Navigate to="settings" replace/>},
-                {path: 'main_window', element: <SettingsPage/>},
+                {path: '', element: <Navigate to="main_window" replace/>},
+                {
+                    path: 'main_window',
+                    element: <Dashboard/>,
+                    children: routes
+                },
             ]
         }
     ]);
