@@ -1,7 +1,7 @@
 {
   "name": "mydu-mod-manager",
   "productName": "mydu-mod-manager",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "MyDU Mod Manager for Players to Sync Client Mods from a Server",
   "main": ".webpack/main",
   "scripts": {

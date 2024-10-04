@@ -124,7 +124,6 @@ const ModsPage = () => {
                     if (!cachedMods.map(x => x.id).includes(mod)) {
                         setLoading(true);
                         window.api.downloadFile(downloadUrl, fileName);
-                        return;
                     }
                 }
             }, error => {
