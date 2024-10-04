@@ -2,24 +2,11 @@ import {Outlet, useNavigate} from "react-router-dom";
 import React from "react";
 import {AppProvider, DashboardLayout, Navigation, Router} from "@toolpad/core";
 import {createTheme} from "@mui/material";
-import { NotificationsProvider } from '@toolpad/core/useNotifications';
-import { DialogsProvider } from '@toolpad/core/useDialogs';
+import {NotificationsProvider} from '@toolpad/core/useNotifications';
+import {DialogsProvider} from '@toolpad/core/useDialogs';
 import {Inventory, Settings} from "@mui/icons-material";
 import logo from '../../assets/images/logo.png';
 import styled from "@emotion/styled";
-
-const NAVIGATION: Navigation = [
-    {
-        segment: 'mods',
-        title: 'Mods',
-        icon: <Inventory/>,
-    },
-    {
-        segment: 'settings',
-        title: 'Settings',
-        icon: <Settings/>,
-    }
-];
 
 const theme = createTheme({
     palette: {
@@ -54,21 +41,37 @@ const Dashboard = (props: any) => {
     const [pathname, setPathname] = React.useState(window.location.pathname);
     const navigate = useNavigate();
 
+    const NAVIGATION: Navigation = [
+        {
+            segment: 'mods',
+            title: 'Mods',
+            icon: <Inventory/>,
+        },
+        {
+            segment: 'settings',
+            title: 'Settings',
+            icon: <Settings/>,
+        }
+    ];
+
     const router = React.useMemo<Router>(() => {
         return {
             pathname,
             searchParams: new URLSearchParams(),
             navigate: (path) => {
-                setPathname(String(path));
-                navigate(path);
+                const pathPieces = String(path).split('/');
+                const lastPath = pathPieces[pathPieces.length - 1];
+
+                setPathname(lastPath);
+                navigate(lastPath);
             },
         };
-    }, [pathname, navigate]);
+    }, [pathname]);
 
     return <AppProvider
         branding={{
             title: "Mod Manager",
-            logo: <LogoImg src={logo} alt="logo" />
+            logo: <LogoImg src={logo} alt="logo"/>
         }}
         navigation={NAVIGATION}
         router={router}
