@@ -96,6 +96,17 @@ const ModsPage = () => {
         window.api.saveConfig(newConfig);
     };
 
+    const getBaseUrlForModDownload = (value: string) => {
+        const url = new URL(value);
+
+        const segments = url.pathname.split('/').filter(Boolean);
+        segments.pop(); // Remove the last segment
+
+        url.pathname = '/' + segments.join('/');
+
+        return url;
+    }
+
     const processManifestFile = (filename: string) => {
         window.api.readFile(filename)
             .then(data => {
@@ -106,7 +117,8 @@ const ModsPage = () => {
             .then(manifest => {
                 for (const mod of manifest.mods) {
                     const fileName = mod.endsWith(".zip") ? mod : `${mod}.zip`;
-                    const baseUrl = config.serverUrl.replace("manifest.json", "");
+
+                    const baseUrl = getBaseUrlForModDownload(config.serverUrl);
                     const downloadUrl = `${baseUrl}/${fileName}`;
 
                     if (!cachedMods.map(x => x.id).includes(mod)) {
