@@ -70,8 +70,8 @@ const Dashboard = (props: any) => {
 
     return <AppProvider
         branding={{
-            title: "Mod Manager",
-            logo: <LogoImg src={logo} alt="logo"/>
+            title: "MyDU Mod Manager",
+            // logo: <LogoImg src={logo} alt="logo"/>
         }}
         navigation={NAVIGATION}
         router={router}
