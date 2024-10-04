@@ -8,7 +8,7 @@ import EjectIcon from '@mui/icons-material/Eject';
 import {useNotifications} from '@toolpad/core/useNotifications';
 import React, {useEffect, useState} from "react";
 import {AppConfig} from "../../common/config";
-import {Inventory, CheckCircle} from "@mui/icons-material";
+import {Inventory, CheckCircle, FolderOpen} from "@mui/icons-material";
 import {useDialogs} from "@toolpad/core";
 
 interface ModItem {
@@ -260,6 +260,14 @@ const ModsPage = () => {
         setFolderDeleteRegistered(true);
     }
 
+    async function openModsCacheFolder() {
+        await window.api.openCachedPath();
+    }
+
+    async function openInstalledModsFolder() {
+        await window.api.openInstalledPath();
+    }
+
     return (
         <DashboardContainer title="Mods">
             <p>Mods Downloaded</p>
@@ -305,6 +313,37 @@ const ModsPage = () => {
             </Box>
 
             {loading ? (<Box><LinearProgress/></Box>) : ""}
+
+            <br/>
+
+            <Box
+                component="form"
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 2, // space between elements
+                }}
+            >
+                <Button color="secondary" variant="outlined" sx={{minWidth: '100px'}}
+                        title={"Open Cached Mods Folder"}
+                        onClick={() => openModsCacheFolder()}
+                        startIcon={<FolderOpen/>}>
+                    Mods Cache
+                </Button>
+                <Button color="secondary" variant="outlined" sx={{minWidth: '100px'}}
+                        title={"Open Installed Mods Folder"}
+                        onClick={() => openInstalledModsFolder()}
+                        startIcon={<FolderOpen/>}>
+                    Installed Mods
+                </Button>
+                <Button color="secondary" variant="outlined" sx={{minWidth: '100px'}}
+                        title={"Refresh Mods List"}
+                        onClick={() => listMods()}
+                        startIcon={<ReplayIcon/>}>
+                    Refresh
+                </Button>
+            </Box>
 
             <br/>
 

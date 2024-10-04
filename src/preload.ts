@@ -25,4 +25,6 @@ contextBridge.exposeInMainWorld('api', {
     deleteInstalledMods: (modNames: string[]) => ipcRenderer.send('delete-installed-mods', modNames),
     onFolderDeleteFailed: (callback: FolderDeleteCallback) => ipcRenderer.on('folder-delete-failed', (event, error) => callback(error)),
     onFolderDeleteCompleted: (callback: FolderDeleteCallback) => ipcRenderer.on('folder-delete-completed', (event, error) => callback(error)),
+    openInstalledPath: () => ipcRenderer.invoke('open-installed-path'),
+    openCachedPath: () => ipcRenderer.invoke('open-cached-path'),
 });

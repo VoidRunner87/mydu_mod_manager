@@ -2,7 +2,7 @@ import * as path from "node:path";
 import * as fs from "node:fs";
 import * as https from "node:https";
 import * as http from "http";
-import {app, ipcMain} from "electron";
+import {app, ipcMain, shell} from "electron";
 import {AppConfig} from "../common/config";
 import extractZip from "extract-zip";
 
@@ -223,6 +223,23 @@ ipcMain.handle('install-mods', async (event, folderNames: string[]) => {
         const destPath = path.join(modsFolder, mod);
         copyFolder(modPath, destPath);
     }
+});
+
+ipcMain.handle("open-cached-path", async (event) => {
+    const config = await readConfigFile();
+    const myDUPath = config.myDUPath;
+    const modCachePath = path.join(myDUPath, "mods-cache");
+
+    await shell.openPath(modCachePath);
+});
+
+ipcMain.handle("open-installed-path", async (event) => {
+    const config = await readConfigFile();
+
+    const myDUPath = config.myDUPath;
+    const modsFolder = path.join(myDUPath, "Game", "data", "resources_generated", "mods");
+
+    await shell.openPath(modsFolder);
 });
 
 app.on('ready', () => {

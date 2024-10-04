@@ -25,6 +25,8 @@ declare global {
             deleteInstalledMods: (modNames: string[]) => Promise<void>;
             onFolderDeleteFailed: (callback: FolderDeleteCallback) => void;
             onFolderDeleteCompleted: (callback: FolderDeleteCallback) => void;
+            openCachedPath: () => Promise<void>;
+            openInstalledPath: () => Promise<void>;
         };
     }
 }
