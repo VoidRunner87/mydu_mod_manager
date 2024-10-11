@@ -56,6 +56,31 @@ Also on the same folder as the manifest, add the files listed on the mods proper
 
 It has to be a zip file.
 
-On the manifest you can ommit the zip extension.
+On the manifest you can omit the zip extension.
 
 Create mod zip files with versioning in mind. The mod manager WILL SKIP already downloaded mods.
+
+# My Mod needs to copy files to a folder other than the mod folder or override existing files
+
+Create a json similar to this:
+
+```json
+{
+  "title": "MyDU Elements Mod",
+  "description": "Element Skins such as Epstein for Engines",
+  "author": "VoidRunner7891",
+  "url": "https://github.com/VoidRunner87/mod_elements",
+  "version": "0.1.0",
+  "commands": [
+    {
+      "type": "copy",
+      "path": "textures/fx_diffuseramp_100_t_rp.dds",
+      "destination": "resources_generated/vfxs/textures"
+    }
+  ]
+}
+```
+
+The commands section will allow you to copy a file to a folder of the game.
+This is irreversible (until I develop a backup feature - maybe)
+Do not use any `..` characters or try to go to a folder outside the game

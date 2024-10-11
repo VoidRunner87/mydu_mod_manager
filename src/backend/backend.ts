@@ -45,11 +45,9 @@ ipcMain.on('download-file', (event, {url, filename}) => {
 ipcMain.handle('read-file', (event, filePath) => {
     return new Promise((resolve, reject) => {
         fs.readFile(filePath, 'utf-8', (err, data) => {
-            if (err)
-            {
+            if (err) {
                 reject(`Failed to read file: ${filePath}`);
-            }
-            else {
+            } else {
                 resolve(data);
             }
         });
@@ -120,7 +118,7 @@ ipcMain.handle('extract-zip-file', async (event, zipFilePath, baseFolder) => {
             fs.mkdirSync(targetFolder);
         }
 
-        extractZip(zipFilePath, { dir: targetFolder })
+        extractZip(zipFilePath, {dir: targetFolder})
             .then(
                 () => resolve(`ZIP extracted to ${targetFolder}`),
                 err => reject(`Failed to extract ZIP: ${err.message}`)
@@ -151,7 +149,7 @@ ipcMain.handle('list-installed-mods', async (event) => {
 
 function copyFolder(src: string, dest: string) {
     if (!fs.existsSync(dest)) {
-        fs.mkdirSync(dest, { recursive: true });
+        fs.mkdirSync(dest, {recursive: true});
     }
 
     const items = fs.readdirSync(src);
@@ -170,14 +168,13 @@ function copyFolder(src: string, dest: string) {
     });
 }
 
-async function deleteMods(event : Electron.IpcMainEvent, baseFolder: string, mods: string[], folderNames: string[])
-{
+async function deleteMods(event: Electron.IpcMainEvent, baseFolder: string, mods: string[], folderNames: string[]) {
     const deleteList = mods.filter(m => folderNames.includes(m));
 
     const deletePathList = deleteList.map(m => path.join(baseFolder, m));
 
     for (const folder of deletePathList) {
-        fs.rm(folder, { recursive: true, force: true }, err => {
+        fs.rm(folder, {recursive: true, force: true}, err => {
             if (err) {
                 event.reply("folder-delete-failed", err?.message);
             }
@@ -205,6 +202,54 @@ ipcMain.on('delete-installed-mods', async (event, folderNames: string[]) => {
     await deleteMods(event, modsFolder, await listInstalledMods(), folderNames);
 });
 
+interface ModCommand {
+    type: string;
+    path: string;
+    destination: string;
+}
+
+interface ModConfig {
+    title: string;
+    description: string;
+    author: string;
+    url: string;
+    version: string;
+    commands: ModCommand[];
+}
+
+async function getModConfigFile(mod: string): Promise<ModConfig> {
+
+    const config = await readConfigFile();
+    const myDUPath = config.myDUPath;
+    const modsFolder = path.join(myDUPath, "Game", "data", "resources_generated", "mods");
+
+    const modConfigFile = path.join(modsFolder, mod, "mod.json");
+
+    if (!fs.existsSync(modConfigFile)) {
+        return {
+            title: mod,
+            description: "",
+            author: "",
+            url: "",
+            version: "",
+            commands: []
+        };
+    }
+
+    const fileContents = fs.readFileSync(modConfigFile, 'utf-8');
+    const modConfigObj = JSON.parse(fileContents);
+
+    return modConfigObj as ModConfig;
+}
+
+function sanitizeModLocalPath(v: string): string {
+    return v.replace("..", "");
+}
+
+function sanitizeMyDuPath(v: string): string {
+    return v.replace("..", "");
+}
+
 ipcMain.handle('install-mods', async (event, folderNames: string[]) => {
     const config = await readConfigFile();
     const cachedMods = await listCachedMods();
@@ -214,14 +259,33 @@ ipcMain.handle('install-mods', async (event, folderNames: string[]) => {
     const modsFolder = path.join(myDUPath, "Game", "data", "resources_generated", "mods");
 
     for (const mod of cachedMods) {
-        if (!folderNames.includes(mod))
-        {
+        if (!folderNames.includes(mod)) {
             continue;
         }
 
+        const gameDataPath = path.join(myDUPath, "Game", "data");
         const modPath = path.join(modCachePath, mod);
         const destPath = path.join(modsFolder, mod);
         copyFolder(modPath, destPath);
+
+        const modConfig = await getModConfigFile(mod);
+        for (const command of modConfig.commands) {
+
+            switch (command.type) {
+                case "copy": {
+                    const fromPath = sanitizeModLocalPath(command.path);
+                    const toPath = sanitizeMyDuPath(command.destination);
+                    const fileName = path.basename(fromPath);
+
+                    const fromModPath = path.join(modPath, fromPath);
+                    const destinationPath = path.join(gameDataPath, toPath, fileName);
+
+                    fs.copyFileSync(fromModPath, destinationPath);
+
+                    break;
+                }
+            }
+        }
     }
 });
 
